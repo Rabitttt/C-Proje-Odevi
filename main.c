@@ -114,7 +114,7 @@ void Bilet_al(Bilet *bilet)
         }
     }
 
-
+    BiletSayisiDosyasi(1);
 
 }
 
@@ -283,26 +283,132 @@ for(i=0 ; i<y ; i++)
 
 void Ekleme()
 {
-
+   //YOLCU EKLEME + (...)
 }
 
 
 void Bilet_kaydiGuncelle()
 {
-
+   // ARANAN KAYITTAN İSTENEN OZELLIK GUNCELLENECEK VE GUNCEL HALI EKRANA BASTIRILACAK
 }
 
 void Bilet_kaydiSil()
 {
-
+   // BİLET KODUNA GORE ARANAN BİLET SİLİNECEK
 }
 
 void Fis_Bastir()
 {
-
+   //BİLET NUMARASINA GORE GIRILEN BILETIN OZELLIKLERİ BASTİRİLİACAK
 }
 
 
+void DosyayaYaz(Bilet *bilet)
+{
+    int i,j;
+
+    FILE *dosya;
+
+    dosya = fopen("dosya","a+");
+
+    if(dosya==NULL)
+    {
+        printf("Dosya Acilamadi");
+        exit(0);
+    }
+
+    for(i=0;i<1;i++)
+    {
+       fprintf(dosya,"%s %s %d %d %d %d",bilet->Kalkis_Sehri , bilet->Varis_Sehri , bilet->Gun , bilet->Ay , 2019 , bilet->yolcu_Sayisi );
+
+       for(j=0;j<bilet->yolcu_Sayisi;j++)
+       {
+           fprintf(dosya,"%d %s %s %d", (bilet->Yolcular+j)->yas , (bilet->Yolcular+j)->Ad , (bilet->Yolcular+j)->Soyad , (bilet->Yolcular+j)->koltuk_numarasi);
+       }
+    }
+
+    fclose(dosya);
+
+     // BİLETLER DOSYAYA STRUCT BİLGİLERİ HALİNDE YAZİLACAK ********************************
+}
+
+void DosyadanOku(Bilet *bilet)
+{
+
+    int i,j;
+
+    Bilet *tumBiletler
+
+    tumBiletler = (Bilet *)malloc(sizeof(Bilet)*BiletSayisiDosyasi(0));
+
+    //DOSYADAN YENI STRUCTA OKUMA İSLEMLERİNI YAP.
+
+    dosya = fopen("dosya","r");
+
+    if(dosya==NULL)
+    {
+        printf("Dosya Acilamadi");
+        exit(0);
+    }
+
+    for(i=0;i<BiletSayisiDosyasi(0);i++)
+    {
+        fscanf(dosya,"%s %s %d %d %d %d",(tumBiletler+i)->Kalkis_Sehri , (tumBiletler+i)->Varis_Sehri , &(tumBiletler+i)->Gun , &(tumBiletler+i)->Ay , 2019 , &(tumBiletler+i)->yolcu_Sayisi );
+
+        (tumBiletler+i)->Yolcular = (Bilet *)malloc((tumBiletler+i)->yolcu_Sayisi * sizeof(Bilet));
+
+        for(j=0 ; j<(tumBiletler+i)->yolcu_Sayisi ; j++)
+        {
+            fscanf(dosya,"%d %s %s %d", &((tumBiletler+i)->Yolcular+j)->yas , ((bilet+i)->Yolcular+j)->Ad , ((bilet+i)->Yolcular+j)->Soyad , &((bilet+i)->Yolcular+j)->koltuk_numarasi);
+        }
+
+    }
 
 
+    for(i=0;i<sSayisi;i++)
+    {
+        printf("%s %s %d",(ogrrr+i)->ad,(ogrrr+i)->soyad,(ogrrr+i)->yas);
+        printf("\n");
+    }
 
+    fclose(dosya);
+
+}
+
+int BiletSayisiDosyasi(int eklenecek)
+{
+   //FONKSİYON EKLEME DURUMUNDA "1" , SİLME DURUMUNDA "-1" , SADECE BİLET SAYİSİ GORME DURUMUNDA "0" GONDERILEREK ACİLİR.
+
+   int biletSayisi=0;
+   int sayac=0,t;
+
+   FILE *bsd
+
+   bsd = fopen("BSD","a+");
+
+   if(bsd == NULL)
+   {
+       printf("Dosya Acilamadi...");
+       exit(0);
+   }
+
+   if(eklenecek==1)
+   {
+     fprintf(bsd,"%d",eklenecek);
+
+     while(!feof(bsd))
+     {
+         fscanf(bsd,"%d",t);
+         sayac += t;
+     }
+     biletSayisi = sayac;
+   }
+   else
+   {
+     fscanf(bsd,"%d",biletSayisi);
+     return biletSayisi;
+   }
+   fclose(bsd);
+
+   //SİLME KISMINDA BİLETSAYİSİNİ AL 1 AZALT   FOR İLE AZALMIŞ MİKTARI TEKRAR DOSYAYA YAZDIR ACIS MODU W OLMASI GEREKIR
+}
