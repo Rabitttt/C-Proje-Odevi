@@ -30,9 +30,24 @@ typedef struct BiletBilgisi
 
   int yolcu_Sayisi;
 
-  *yolcu Yolcular;
+  yolcu *Yolcular;
 
 }Bilet;
+
+
+void Tarih(Bilet *bilet);
+int BiletSayisiDosyasi(int);
+void DosyadanOku(Bilet *);
+void DosyayaYaz(Bilet *);
+void Fis_Bastir();
+void Bilet_kaydiSil();
+void Bilet_kaydiGuncelle();
+void Ekleme();
+void koltukSecimi(Bilet *,int);
+void Koltuklar(Bilet *);
+void Sefer(Bilet *);
+void Bilet_al(Bilet *);
+
 
 
 int main()
@@ -46,6 +61,7 @@ void AnaMenu()
    Bilet *bilet;
 
    int secim;
+
    printf("1-Bilet Al\n");
    printf("2-Bilet Guncelle\n");
    printf("3-Bilet Kaydı Sil\n");
@@ -53,7 +69,7 @@ void AnaMenu()
    printf("5-Cikis");
 
    printf("Lutfen Yapmak Istediginiz islemi seciniz: ");
-   scanf("%d",%secim);
+   scanf("%d",&secim);
 
        if(secim==1)
        {
@@ -110,14 +126,13 @@ void Bilet_al(Bilet *bilet)
             printf("%d. yolcunun Yasi: ");
             scanf("%d", &((bilet)->Yolcular+j)->Yas);
 
-            koltukSecimi(bilet , j);
+            koltukSecimi(bilet ,j);
         }
     }
 
     BiletSayisiDosyasi(1);
 
 }
-
 
 void Sefer(Bilet *bilet)
 {
@@ -169,7 +184,7 @@ void Tarih(Bilet *bilet)
     {
         printf("Gecersiz Tarih\n");
         system("CLS");
-        Tarih()
+        Tarih(bilet);
     }
 
 
@@ -181,7 +196,6 @@ void Tarih(Bilet *bilet)
 
 
 }
-
 
 void Koltuklar(Bilet *bilet)
 {
@@ -205,7 +219,7 @@ void Koltuklar(Bilet *bilet)
   }
 }
 
-void koltukSecimi(Bilet *bilet , y)
+void koltukSecimi(Bilet *bilet ,int y)
 {
 
 int UcakSecilenKoltuk;
@@ -240,7 +254,7 @@ for(i=0 ; i<y ; i++)
              printf("UZGUNUZ!! Sectiginiz Koltuk Bulunmamaktadir");
              delay(1200);
              system("CLS");
-             koltukSecimi(Bilet *bilet , y);
+             koltukSecimi(bilet , y);
       }
 
 
@@ -248,11 +262,11 @@ for(i=0 ; i<y ; i++)
         for(j=0; j<21; j++)
             for(k=0; k<5; k++)
             {
-              if( ((bilet)->Yolcular+y)->koltuk_numarasi == UcakSecilenKoltuk )
+              if( (bilet->Yolcular+y)->koltuk_numarasi == UcakSecilenKoltuk )
               {
                   printf("Secilen Koltuk Dolu Lutfen Farkli Bir koltuk Seciniz..");
                   system("CLS");
-                  koltukSecimi(Bilet *bilet , y);
+                  koltukSecimi(bilet , y);
               }
               if( UcakSecilenKoltuk == bilet->koltuklarDizisi[i][j] )
               {
@@ -263,29 +277,13 @@ for(i=0 ; i<y ; i++)
 
 
             }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    }
 }
 
 void Ekleme()
 {
    //YOLCU EKLEME + (...)
 }
-
 
 void Bilet_kaydiGuncelle()
 {
@@ -301,7 +299,6 @@ void Fis_Bastir()
 {
    //BİLET NUMARASINA GORE GIRILEN BILETIN OZELLIKLERİ BASTİRİLİACAK
 }
-
 
 void DosyayaYaz(Bilet *bilet)
 {
@@ -323,7 +320,7 @@ void DosyayaYaz(Bilet *bilet)
 
        for(j=0;j<bilet->yolcu_Sayisi;j++)
        {
-           fprintf(dosya,"%d %s %s %d", (bilet->Yolcular+j)->yas , (bilet->Yolcular+j)->Ad , (bilet->Yolcular+j)->Soyad , (bilet->Yolcular+j)->koltuk_numarasi);
+           fprintf(dosya,"%d %s %s %d",(bilet->Yolcular+j)->Yas , (bilet->Yolcular+j)->Ad , (bilet->Yolcular+j)->Soyad , (bilet->Yolcular+j)->koltuk_numarasi);
        }
     }
 
@@ -332,12 +329,12 @@ void DosyayaYaz(Bilet *bilet)
      // BİLETLER DOSYAYA STRUCT BİLGİLERİ HALİNDE YAZİLACAK ********************************
 }
 
-void DosyadanOku(Bilet *bilet)
+void DosyadanOku(FILE *dosya)
 {
 
     int i,j;
 
-    Bilet *tumBiletler
+    Bilet *tumBiletler;
 
     tumBiletler = (Bilet *)malloc(sizeof(Bilet)*BiletSayisiDosyasi(0));
 
@@ -359,16 +356,9 @@ void DosyadanOku(Bilet *bilet)
 
         for(j=0 ; j<(tumBiletler+i)->yolcu_Sayisi ; j++)
         {
-            fscanf(dosya,"%d %s %s %d", &((tumBiletler+i)->Yolcular+j)->yas , ((bilet+i)->Yolcular+j)->Ad , ((bilet+i)->Yolcular+j)->Soyad , &((bilet+i)->Yolcular+j)->koltuk_numarasi);
+            fscanf(dosya,"%d %s %s %d", &((tumBiletler+i)->Yolcular+j)->Yas , ((bilet+i)->Yolcular+j)->Ad , ((bilet+i)->Yolcular+j)->Soyad , &((bilet+i)->Yolcular+j)->koltuk_numarasi);
         }
 
-    }
-
-
-    for(i=0;i<sSayisi;i++)
-    {
-        printf("%s %s %d",(ogrrr+i)->ad,(ogrrr+i)->soyad,(ogrrr+i)->yas);
-        printf("\n");
     }
 
     fclose(dosya);
@@ -382,7 +372,7 @@ int BiletSayisiDosyasi(int eklenecek)
    int biletSayisi=0;
    int sayac=0,t;
 
-   FILE *bsd
+   FILE *bsd;
 
    bsd = fopen("BSD","a+");
 
