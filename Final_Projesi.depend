@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1558960079 source:c:\users\ruger\documents\c\final_projesi\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdlib.h>
+	<time.h>
+	<string.h>
+
