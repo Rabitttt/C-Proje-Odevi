@@ -4,8 +4,9 @@
 #include <time.h>
 #include <string.h>
 
-//PROGRAM KAPANDIGINDA DA ONCEDEN ALINMIS KOLTUKLAR SABIT KALMASI (koltuk numarası ile kontrol et)
-//ADMİN YETKİSİ İLE BUTUN BİLETLERİ GOREBİLME
+//PROGRAM KAPANDIGINDA DA ONCEDEN ALINMIS KOLTUKLAR SABIT KALMASI (koltuk numarası ile kontrol et).
+//ADMİN YETKİSİ İLE BUTUN BİLETLERİ GOREBİLME.
+//AÇİLİSTA BİLET KAYDİ SİLME GİBİ DURUMLARİN KONTROLU SAGLANACAK.(ARAMA KISMINDA SAGLANIYOR OLABİLİR)
 
 void delay(unsigned int mseconds)
 {
@@ -37,14 +38,13 @@ typedef struct BiletBilgisi
 
 // "k_" ile baslayanlar kart bilgileri
 //*********
-  char k_Ad;
+  char k_Ad[30];
   char k_Soyad[30];
   int k_Numara;
   int k_Ay;
   int k_Yil;
   int k_CVV;
 //*********
-
 
 
   int yolcu_Sayisi;
@@ -54,20 +54,27 @@ typedef struct BiletBilgisi
 }Bilet;
 
 
-void Tarih(Bilet *);
+void Tarih();
 int BiletSayisiDosyasi(int);
-void DosyadanOku(FILE *);
-void DosyayaYaz(Bilet *);
+void DosyadanOku();
+void DosyayaYaz(Bilet *,int,int);
 void Fis_Bastir();
 void Bilet_kaydiSil();
 void Bilet_kaydiGuncelle();
-void Ekleme();
-void koltukSecimi(Bilet *,int);
-void Koltuklar(Bilet *);
-void Sefer(Bilet *);
+void koltukSecimi(int);
+void Koltuklar();
+void Sefer();
 void Bilet_al();
-void kartBilgileri(Bilet *);
+void kartBilgileri();
+int BasamakSayisi(int);
+int Arama();
+void Bileti_Yadir(Bilet *,int);
 
+
+Bilet *tumBiletler;
+Bilet *bilet;
+FILE *bsd;
+FILE *dosya;
 
 
 int main()
@@ -88,6 +95,20 @@ void AnaMenu()
 
    printf("Lutfen Yapmak Istediginiz islemi seciniz: ");
    scanf("%d",&secim);
+
+       printf("----------------\n");
+
+
+       if((secim == 2 ||  secim == 3) && (BiletSayisiDosyasi(0) == 0))
+       {
+           printf("Mevcut Bilet Kaydi Bulunamadi");
+           AnaMenu();
+       }
+       else
+          DosyadanOku();
+
+
+
 
        if(secim==1)
        {
@@ -115,43 +136,23 @@ void AnaMenu()
          AnaMenu();
        }
 
-
-   while(1==1)
-   {
-   printf("Tebrikler!..Bilet Alma islemi Tamamlanmistir.");
-   printf("1-Ana Menu");
-   printf("2-Fis Bastir");
-   printf("3-Cikis");
-   scanf("%d",secim);
-
-   if(secim==1)
-    AnaMenu();
-   else if(secim==2)
-    Fis_Bastir();
-   else if(secim==3)
-    exit(0);
-   else
-    printf("Hatali Secim! Lutfen Tekrar Seciniz...");
-
-    }
 }
 
 void Bilet_al()
 {
 
-    Bilet *tumBiletler;
+    //NOT : TEK SEFERDE FARKLI FARKLI BİLETLER ALMAK MANTIKLI OLMAYACAGI ICIN BİLET AL MENUSU 1 BİLET İCİN TASARLANDI .
 
-    Bilet *bilet;
 
     bilet = (Bilet *)malloc(sizeof(Bilet)*1);
-    Koltuklar(bilet);
+    Koltuklar();
 
     int i,j;
 
     for(i=0;i<1;i++)
     {
-        Sefer(bilet);
-        Tarih(bilet);
+        Sefer();
+        Tarih();
 
         printf("Kac Tane Bilet Alacaginizi Seciniz: ");
         scanf("%d",&bilet->yolcu_Sayisi);
@@ -171,23 +172,47 @@ void Bilet_al()
 
         }
 
-        koltukSecimi(bilet ,bilet->yolcu_Sayisi);
+        koltukSecimi(bilet->yolcu_Sayisi);
 
-        kartBilgileri(bilet);
+        kartBilgileri();
 
     }
 
-    BiletSayisiDosyasi(1);
+   BiletSayisiDosyasi(1);
 
-    bilet->biletNO = BiletSayisiDosyasi(0);
+   bilet->biletNO = BiletSayisiDosyasi(0);
 
-    DosyayaYaz(bilet);
+   DosyayaYaz(bilet,1,-1);
 
-    Bileti_Yadir(bilet,0);
+   Bileti_Yadir(bilet,0);
+
+
+   int secim;
+
+   while(1==1)
+   {
+   printf("Tebrikler!!Bilet Alma islemi Tamamlanmistir. \n");
+   printf("1-Ana Menu \n");
+   printf("2-Cikis \n");
+   printf("Seciminiz :");
+   scanf("%d",&secim);
+
+   if(secim == 1)
+   {
+       AnaMenu();
+   }
+   else if(secim == 2)
+   {
+      exit(0);
+   }
+   else
+    printf("Hatali Bir Secim Yaptiniz Lutfen Tekrar Secin.");
+
+   }
 
 }
 
-void Sefer(Bilet *bilet)
+void Sefer()
 {
     char Sehirler[6][40] = {"Ankara","Konya","Istanbul","Izmir","Antalya"};
 
@@ -212,7 +237,7 @@ void Sefer(Bilet *bilet)
 
 }
 
-void Tarih(Bilet *bilet)
+void Tarih()
 {
 
    int i;
@@ -236,7 +261,7 @@ void Tarih(Bilet *bilet)
     {
         printf("Gecersiz Tarih\n");
         system("CLS");
-        Tarih(bilet);
+        Tarih();
     }
 
 
@@ -249,7 +274,7 @@ void Tarih(Bilet *bilet)
 
 }
 
-void Koltuklar(Bilet *bilet)
+void Koltuklar()
 {
   int i,j,t=0;
 
@@ -271,7 +296,7 @@ void Koltuklar(Bilet *bilet)
   }
 }
 
-void koltukSecimi(Bilet *bilet ,int y)
+void koltukSecimi(int y)
 {
 
 int UcakSecilenKoltuk;
@@ -307,7 +332,7 @@ for(i=0 ; i<y ; i++)
              printf("UZGUNUZ!! Sectiginiz Koltuk Bulunmamaktadir");
              delay(1200);
              system("CLS");
-             koltukSecimi(bilet , y);
+             koltukSecimi(y);
       }
 
           for(t=0;t<y;t++)
@@ -316,7 +341,7 @@ for(i=0 ; i<y ; i++)
               {
                   printf("Secilen Koltuk Dolu Lutfen Farkli Bir koltuk Seciniz..");
                   system("CLS");
-                  koltukSecimi(bilet , y);
+                  koltukSecimi(y);
               }
           }
 
@@ -338,7 +363,7 @@ for(i=0 ; i<y ; i++)
 
 }
 
-void kartBilgileri(Bilet * bilet)
+void kartBilgileri()
 {
 
     printf("\t\tKART BILGILERI\n");
@@ -354,10 +379,10 @@ void kartBilgileri(Bilet * bilet)
 
      if(BasamakSayisi(bilet->k_Numara)!=4)
      {
-       printf("%d Haneli Bir Numara Girdiniz Lutfen Tekrar Girin...",BasamakSayisi(KartNumarasi));
+       printf("%d Haneli Bir Numara Girdiniz Lutfen Tekrar Girin...",BasamakSayisi(bilet->k_Numara));
        delay(2000);
        system("CLS");
-       kartBilgileri();
+       kartBilgileri(bilet);
      }
 
    printf("\nKart Tarihi: **/**\n");
@@ -373,19 +398,12 @@ void kartBilgileri(Bilet * bilet)
        printf("Gecersiz Bir Tarih Girdiniz. Lutfen Tekrar Giriniz...");
        delay(1500);
        system("CLS");
-       KartBilgileri();
+       kartBilgileri();
    }
 
 
-   printf("\n3 Haneli Kart Sifresi: "); scanf("%d",&KartSifresi);
-
-   if(BasamakSayisi(bilet->k_CVV)!=3)
-   {
-      printf("Gecersiz Bir Sifre Girdiniz. Lutfen Tekrar Giriniz...");
-       delay(1500);
-       system("CLS");
-       KartBilgileri();
-   }
+   printf("\n3 Haneli Kart Sifresi: ");
+   scanf("%d",& bilet->k_CVV);
 
 }
 
@@ -401,7 +419,7 @@ int BasamakSayisi(int sayi)
   return basamakS;
 }
 
-int Arama(Bilet *tumBiletler)
+int Arama()
 {
    int i;
    int arananBiletNO;
@@ -409,7 +427,7 @@ int Arama(Bilet *tumBiletler)
    printf("Lutfen Aradiginiz Biletin Numarasini Giriniz: ");
    scanf("%d",&arananBiletNO);
 
-   for(i=0 ; i<BiletSayisiDosyasi(0) ; i++)
+   for(i=0 ; i< 10; i++)
    {
        if( (tumBiletler+i)->biletNO == arananBiletNO)
        {
@@ -417,14 +435,9 @@ int Arama(Bilet *tumBiletler)
        }
    }
 
-   printf("Aradiginiz Biler Numarasiyla Eslesen Bilet Bulunamadi...");
+   printf("Aradiginiz Bilet Numarasiyla Eslesen Bilet Bulunamadi...");
 }
 
-
-void Ekleme()
-{
-   //YOLCU EKLEME + (...)
-}
 
 void Bilet_kaydiGuncelle()
 {
@@ -436,16 +449,45 @@ void Bilet_kaydiGuncelle()
 void Bilet_kaydiSil()
 {
    // BİLET KODUNA GORE ARANAN BİLET SİLİNECEK
-   Arama();
+
+   int i,j,secim,silinecek,kontrol;
+
+   for(i=0;i<BiletSayisiDosyasi(0);i++)
+   {
+       printf("%d. bilet no %d",i,(tumBiletler+i)->biletNO);
+   }
 
 
+   printf("Silinecek Bilet No Giriniz : ");
+   scanf("%d",&silinecek);
+
+
+   for(i=0;i< BiletSayisiDosyasi(0) ;i++)
+   {
+
+       if( (tumBiletler+i)->biletNO == silinecek )
+       {
+          Bileti_Yadir(tumBiletler,i);
+
+          printf("Silmek istediginize emin misiniz ?");
+
+          printf("1-Sil \n");
+          printf("2-Vazgec \n");
+          printf("Seciminiz: ");
+          if(secim==1)
+          {
+              DosyayaYaz(tumBiletler,BiletSayisiDosyasi(0) , i);
+          }
+
+       }
+   }
 
 }
 
-void Fis_Bastir(Bilet *tumBiletler)
+void Fis_Bastir()
 {
    // BİLET NUMARASINA GORE GIRILEN BILETIN OZELLIKLERİ BASTİRİLİACAK
-   int GosterilecekBilet = Arama(tumBiletler);
+   int GosterilecekBilet = Arama();
 
    Bileti_Yadir(tumBiletler,GosterilecekBilet);
 }
@@ -477,21 +519,80 @@ void Bileti_Yadir(Bilet *b,int s)
     for(i=0 ; i< ((b+s)->yolcu_Sayisi) ; i++)
     {
         printf("--------------------------------\n");
-        printf("**%d. Yolcunun Bilgileri**\n");
+        printf("**%d. Yolcunun Bilgileri**\n",i);
         printf("--------------------------------\n");
         printf("Isim : %s \n", ((b+s)->Yolcular+i)->Ad);
         printf("Soyisim : %s \n",((b+s)->Yolcular+i)->Soyad);
         printf("Yas : %d \n",((b+s)->Yolcular+i)->Yas);
-        printf("Koltuk Numarasi : %d",((b+s)->Yolcular+i)->koltuk_numarasi);
+        printf("Koltuk Numarasi : %d \n",((b+s)->Yolcular+i)->koltuk_numarasi);
     }
     printf("--------------------------------");
 }
 
-void DosyayaYaz(Bilet *bilet)
+void DosyayaYaz(Bilet *b,int islemdekiBiletMiktari ,int silmeKontrol) //STRUCTI DOSYAYA YAZAR
 {
+    //SİLME KONTROL == "-1" DEGİL İSE DOSYA SİLMEK İCİN DOSYA W+ MODDA ACİLİR
+
     int i,j;
 
-    FILE *dosya;
+    if(silmeKontrol== -1)
+    {
+        dosya = fopen("dosya.txt","a+");
+    }
+    else
+    {
+        dosya = fopen("dosya.txt","w+");
+        BiletSayisiDosyasi(-1);  //DOSYADAN OKU FONKSİYONUNA GECERKEN BİLET SAYİSİ AZALTİLDİ.
+                                 //DOSYAYAYAZ FONKSİYONUNDA BİLET SAYİSİNİN AZALMAMIS HALİNİ KULLANIYORUZ
+    }
+
+    if(dosya==NULL)
+    {
+        printf("Dosya Acilamadi");
+        exit(0);
+    }
+
+    for(i=0; i<islemdekiBiletMiktari ;i++)
+    {
+       if(i == silmeKontrol)
+       {
+           continue;
+       }
+       fprintf(dosya,"%s %s %d %d %d %d %s %s %d %d %d %d %d",(b+i)->Kalkis_Sehri , (b+i)->Varis_Sehri , (b+i)->Gun , (b+i)->Ay , 2019 , (b+i)->yolcu_Sayisi , (b+i)->k_Ad , (b+i)->k_Soyad , (b+i)->k_Numara , (b+i)->k_Ay , (b+i)->k_Yil , (b+i)->k_CVV) , (b+i)->biletNO;
+
+       for(j=0; j < (b+i)->yolcu_Sayisi ;j++)
+       {
+           fprintf(dosya,"%d %s %s %d",((b+i)->Yolcular+j)->Yas , ((b+i)->Yolcular+j)->Ad , ((b+i)->Yolcular+j)->Soyad , ((b+i)->Yolcular+j)->koltuk_numarasi);
+       }
+    }
+
+
+    fclose(dosya);
+
+    printf("Dosyaya Yazma islemi tamamlandi");
+
+     // BİLETLER DOSYAYA STRUCT BİLGİLERİ HALİNDE YAZİLACAK ********************************
+
+     DosyadanOku();
+
+}
+
+//AMAC DOSYA YERINE STRUCT UZERINDEN ISLEM YAPABİLMEK...
+
+void DosyadanOku() //DOSYADAN STRUCTA OKUR
+{
+
+    int i,j;
+
+    //DOSYADAN YENI STRUCTA OKUMA İSLEMLERİNI YAP.
+
+
+    tumBiletler = (Bilet *)malloc(sizeof(Bilet)*BiletSayisiDosyasi(0));
+    for(i=0;i< BiletSayisiDosyasi(0) ; i++)
+    {
+    (tumBiletler+i)->Yolcular = (Bilet *)malloc((tumBiletler+i)->yolcu_Sayisi*sizeof(Bilet));
+    }
+    //BELLEKTE YER AYİRİLDİ
 
     dosya = fopen("dosya","a+");
 
@@ -501,43 +602,12 @@ void DosyayaYaz(Bilet *bilet)
         exit(0);
     }
 
-    for(i=0;i<1;i++)
-    {
-       fprintf(dosya,"%s %s %d %d %d %d %s %s %d %d %d %d",bilet->Kalkis_Sehri , bilet->Varis_Sehri , bilet->Gun , bilet->Ay , 2019 , bilet->yolcu_Sayisi , bilet->k_Ad , bilet->k_Soyad , bilet->k_Numara , bilet->k_Ay , bilet->k_Yil , bilet->k_CVV);
-
-       for(j=0;j<bilet->yolcu_Sayisi;j++)
-       {
-           fprintf(dosya,"%d %s %s %d",(bilet->Yolcular+j)->Yas , (bilet->Yolcular+j)->Ad , (bilet->Yolcular+j)->Soyad , (bilet->Yolcular+j)->koltuk_numarasi);
-       }
-    }
-
-    fclose(dosya);
-
-     // BİLETLER DOSYAYA STRUCT BİLGİLERİ HALİNDE YAZİLACAK ********************************
-
-     DosyadanOku(dosya);
-}
-
-void DosyadanOku(FILE *dosya)
-{
-
-    int i,j;
-
-    tumBiletler = (Bilet *)malloc(sizeof(Bilet)*BiletSayisiDosyasi(0));
-
-    //DOSYADAN YENI STRUCTA OKUMA İSLEMLERİNI YAP.
-
-    dosya = fopen("dosya","r");
-
-    if(dosya==NULL)
-    {
-        printf("Dosya Acilamadi");
-        exit(0);
-    }
+    rewind(dosya);
 
     for(i=0;i<BiletSayisiDosyasi(0);i++)
     {
-        fscanf(dosya,"%s %s %d %d %d %d %s %s %d %d %d %d",(tumBiletler+i)->Kalkis_Sehri , (tumBiletler+i)->Varis_Sehri , &(tumBiletler+i)->Gun , &(tumBiletler+i)->Ay , 2019 , &(tumBiletler+i)->yolcu_Sayisi , bilet->k_Ad , bilet->k_Soyad , &bilet->k_Numara , &bilet->k_Ay , &bilet->k_Yil , &bilet->k_CVV);
+
+        fscanf(dosya,"%s %s %d %d %d %d %s %s %d %d %d %d %d",(tumBiletler+i)->Kalkis_Sehri , (tumBiletler+i)->Varis_Sehri , &(tumBiletler+i)->Gun , &(tumBiletler+i)->Ay , &(tumBiletler+i)->Yil , &(tumBiletler+i)->yolcu_Sayisi , (tumBiletler+i)->k_Ad , (tumBiletler+i)->k_Soyad , &(tumBiletler+i)->k_Numara , &(tumBiletler+i)->k_Ay , &(tumBiletler+i)->k_Yil , &(tumBiletler+i)->k_CVV) , &(tumBiletler+i)->biletNO;
 
         (tumBiletler+i)->Yolcular = (Bilet *)malloc((tumBiletler+i)->yolcu_Sayisi * sizeof(Bilet));
 
@@ -552,42 +622,79 @@ void DosyadanOku(FILE *dosya)
 
 }
 
-int BiletSayisiDosyasi(int eklenecek)
+int BiletSayisiDosyasi(int islem)
 {
    //FONKSİYON : EKLEME DURUMUNDA "1" , SİLME DURUMUNDA "-1" , SADECE BİLET SAYİSİ GORME DURUMUNDA "0" GONDERILEREK ACİLİR.
 
    int biletSayisi=0;
-   int sayac=0,t;
+   int sayac=0,t=0;
 
-   FILE *bsd;
+   if(islem == 0 || islem == 1)
+   {
+     bsd = fopen("BSD","a+");
+   }
 
-   bsd = fopen("BSD","a+");
+   if(islem == -1)
+   {
+    bsd = fopen("BSD","w+");
+   }
 
    if(bsd == NULL)
    {
-       printf("Dosya Acilamadi...");
+       printf("Bilet Sayisi Dosyasi Acilamadi...");
        exit(0);
    }
 
-   if(eklenecek==1)
+   if(islem==1) // EKLEME MODU
    {
-     fprintf(bsd,"%d",eklenecek);
+     fprintf(bsd,"%d",islem);
+
+
+
+     rewind(bsd);
 
      while(!feof(bsd))
      {
-         fscanf(bsd,"%d",t);
+         fscanf(bsd,"%d",&t);
+         sayac += t;
+     }
+     biletSayisi = sayac;
+
+   }
+   else if(islem == -1) // SİLME MODU
+   {
+
+     biletSayisi = BiletSayisiDosyasi(0);
+     biletSayisi -= 1;
+
+     for(sayac=0 ; sayac < biletSayisi ; sayac++)
+     {
+         fprintf(bsd,"%d",1);
+     }
+     sayac = 0;
+     rewind(bsd);
+
+     while(!feof(bsd))
+     {
+         fscanf(bsd,"%d",&t);
          sayac += t;
      }
      biletSayisi = sayac;
    }
-   else
+   else // BİLET SAYİSİNİ OGRENME MODU
    {
-     fscanf(bsd,"%d",biletSayisi);
+     rewind(bsd);
+     while(!feof(bsd))
+     {
+         fscanf(bsd,"%d",&t);
+         sayac += t;
+     }
+     biletSayisi = sayac;
+
      return biletSayisi;
    }
+
    fclose(bsd);
 
    //SİLME KISMINDA BİLETSAYİSİNİ AL 1 AZALT   FOR İLE AZALMIŞ MİKTARI TEKRAR DOSYAYA YAZDIR ACIS MODU W OLMASI GEREKIR
 }
-
-
